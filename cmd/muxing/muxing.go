@@ -20,6 +20,11 @@ main function reads host/port from env just for an example, flavor it following 
 // Start /** Starts the web server listener on given host and port.
 func Start(host string, port int) {
 	router := mux.NewRouter()
+	router.HandleFunc("/name/{PARAM}", getNameHandler).Methods("GET")
+	router.HandleFunc("/bad", badHandler).Methods("GET")
+	router.HandleFunc("/data", dataHandler).Methods("POST")
+	router.HandleFunc("/header", headerHandler).Methods("GET")
+	router.HandleFunc("/", notDefined)
 
 	log.Println(fmt.Printf("Starting API server on %s:%d\n", host, port))
 	if err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), router); err != nil {
@@ -35,4 +40,53 @@ func main() {
 		port = 8081
 	}
 	Start(host, port)
+}
+
+func getNameHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	w.WriteHeader(http.StatusOK)
+	response := "Hello, " + vars["PARAM"] + "!"
+	w.Write([]byte(response))
+}
+
+func badHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func dataHandler(w http.ResponseWriter, r *http.Request) {
+	paramm := r.PostFormValue("PARAM")
+	response := "I got message:\n" + paramm
+	w.Write([]byte(response))
+}
+
+func headerHandler(w http.ResponseWriter, r *http.Request) {
+	h := r.Header
+
+	if a, ok := h["A"]; ok {
+		if b, ok := h["B"]; ok {
+			ai, err := strconv.Atoi(a[0])
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(err.Error()))
+				return
+			}
+
+			bi, err := strconv.Atoi(b[0])
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(err.Error()))
+				return
+			}
+
+			w.Header().Set("a+b", strconv.Itoa(ai+bi))
+
+			return
+		}
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func notDefined(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
