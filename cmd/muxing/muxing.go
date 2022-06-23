@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -54,9 +55,13 @@ func badHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func dataHandler(w http.ResponseWriter, r *http.Request) {
-	paramm := r.PostFormValue("PARAM")
-	response := "I got message:\n" + paramm
-	w.Write([]byte(response))
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		paramm := string(b)
+		//paramm := r.PostForm()
+		response := "I got message:\n" + paramm
+		w.Write([]byte(response))
+	}
 }
 
 func headerHandler(w http.ResponseWriter, r *http.Request) {
