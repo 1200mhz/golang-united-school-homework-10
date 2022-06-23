@@ -56,10 +56,8 @@ func badHandler(w http.ResponseWriter, r *http.Request) {
 
 func dataHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
-	if err != nil {
-		paramm := string(b)
-		//paramm := r.PostForm()
-		response := "I got message:\n" + paramm
+	if err == nil {
+		response := "I got message:\n" + string(b)
 		w.Write([]byte(response))
 	}
 }
